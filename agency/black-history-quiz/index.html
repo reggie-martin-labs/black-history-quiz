@@ -850,11 +850,18 @@
                 top: calc(env(safe-area-inset-top, 10px) + 10px);
                 left: 10px;
                 z-index: 1001;
+                font-size: 0.9em;
+                padding: 6px 12px;
             }
 
             .ai-chat-header {
-                padding: calc(env(safe-area-inset-top, 10px) + 55px) 15px 15px 15px;
+                padding: calc(env(safe-area-inset-top, 10px) + 50px) 15px 12px 15px;
                 flex-shrink: 0;
+            }
+
+            .ai-chat-header h2 {
+                font-size: 1.1em;
+                margin: 0;
             }
 
             .ai-chat-messages {
@@ -879,7 +886,7 @@
 
         .ai-chat-header {
             text-align: left;
-            padding: 30px 30px 20px 30px;
+            padding: 20px 30px 15px 30px;
             border-bottom: 2px solid #FFC72C;
             background: #FFF8E7;
             border-radius: 20px 20px 0 0;
@@ -888,7 +895,8 @@
 
         .ai-chat-header h2 {
             color: #000000;
-            margin-bottom: 10px;
+            margin: 0;
+            font-size: 1.3em;
         }
 
         .ai-chat-messages {
@@ -1202,7 +1210,6 @@
                 <button class="close-modal" onclick="closeAIChat()">×</button>
                 <div class="ai-chat-header">
                     <h2>🤖 Learn More</h2>
-                    <p id="ai-chat-topic" style="color: #666;"></p>
                 </div>
                 <div class="ai-chat-messages" id="aiChatMessages">
                     <!-- Messages will be added here -->
@@ -1999,7 +2006,6 @@
         function openAIChat(title, fact) {
             const modal = document.getElementById('ai-modal');
             modal.classList.add('active');
-            document.getElementById('ai-chat-topic').textContent = title;
 
             // Hide bottom nav and prevent body scroll on mobile when chat opens
             if (window.innerWidth <= 768) {
