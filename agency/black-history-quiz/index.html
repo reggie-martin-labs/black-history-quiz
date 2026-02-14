@@ -197,6 +197,18 @@
             transform: translateY(-2px);
         }
 
+        .btn-secondary {
+            background: #666;
+            color: #FFF;
+            border: 2px solid #666;
+        }
+
+        .btn-secondary:hover {
+            background: #888;
+            border-color: #888;
+            transform: translateY(-2px);
+        }
+
         .quiz-header {
             display: flex;
             justify-content: space-between;
@@ -1007,12 +1019,14 @@
                 <div class="final-score" id="finalScore"></div>
                 <div class="results-message" id="resultsMessage"></div>
 
-                <!-- Name Input -->
+                <!-- Name Input (Arcade Style) -->
                 <div class="name-input-container" id="nameInputContainer">
-                    <h3>🏆 Save Your Score to the Leaderboard! 🏆</h3>
-                    <input type="text" id="playerName" class="name-input" placeholder="Enter your name" maxlength="20">
-                    <br>
-                    <button class="btn btn-primary" onclick="saveScore()" style="margin-top: 15px;">Save Score</button>
+                    <h3>Enter Your Name</h3>
+                    <input type="text" id="playerName" class="name-input" placeholder="Enter name (optional)" maxlength="20" onkeypress="if(event.key==='Enter') saveScore()">
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="saveScore()">Enter</button>
+                        <button class="btn btn-secondary" onclick="skipScore()">Skip</button>
+                    </div>
                 </div>
 
                 <!-- Results Leaderboard -->
@@ -1035,8 +1049,6 @@
                         <div class="stat-label">Accuracy</div>
                     </div>
                 </div>
-
-                <button class="btn btn-primary" onclick="restartQuiz()">Play Again</button>
             </div>
         </div>
         </div>
@@ -1676,6 +1688,14 @@
             }
 
             document.getElementById('resultsMessage').textContent = message;
+
+            // Arcade style: Show leaderboard immediately with player's score highlighted
+            displayResultsLeaderboardWithTempScore();
+
+            // Show name input
+            document.getElementById('nameInputContainer').style.display = 'block';
+            document.getElementById('playerName').value = '';
+            document.getElementById('playerName').focus();
         }
 
         function restartQuiz() {
@@ -1725,14 +1745,56 @@
             // Save to localStorage
             saveLeaderboard(topScores);
 
-            // Hide the name input section
-            document.getElementById('nameInputContainer').style.display = 'none';
-
-            // Display the leaderboard with current player highlighted
-            displayResultsLeaderboard(playerName);
-
             // Reload leaderboards on home screen
             loadLeaderboards();
+
+            // Return to start screen (arcade style)
+            restartQuiz();
+        }
+
+        function skipScore() {
+            // Just return to start screen without saving (arcade style)
+            restartQuiz();
+        }
+
+        function displayResultsLeaderboardWithTempScore() {
+            const leaderboard = getLeaderboard();
+            const container = document.getElementById('resultsLeaderboardContent');
+            const titleElement = document.getElementById('resultsLeaderboardTitle');
+
+            titleElement.textContent = '🏆 Leaderboard 🏆';
+
+            // Create temp leaderboard with current score
+            const tempLeaderboard = [...leaderboard, {
+                name: '---',
+                score: score,
+                difficulty: currentDifficulty,
+                isTemp: true
+            }];
+
+            // Sort by score
+            tempLeaderboard.sort((a, b) => b.score - a.score);
+
+            let html = '';
+            tempLeaderboard.slice(0, 20).forEach((entry, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                const isCurrentPlayer = entry.isTemp;
+                const currentClass = isCurrentPlayer ? 'current-player' : '';
+
+                html += `
+                    <div class="leaderboard-entry ${currentClass}">
+                        <span class="rank">${medal || (index + 1) + '.'}</span>
+                        <span class="name">${entry.isTemp ? 'YOU' : entry.name}</span>
+                        <span class="difficulty-tag ${entry.difficulty}">${entry.difficulty.charAt(0).toUpperCase()}</span>
+                        <span class="score">${entry.score}</span>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Show the leaderboard
+            document.getElementById('resultsLeaderboard').classList.add('show');
         }
 
         function displayResultsLeaderboard(playerName) {
