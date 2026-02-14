@@ -832,10 +832,23 @@
                 display: flex;
                 align-items: center;
                 gap: 5px;
+                top: max(15px, env(safe-area-inset-top, 15px));
+                z-index: 1001;
             }
 
             .ai-chat-header {
-                padding-top: 60px;
+                padding-top: max(60px, calc(env(safe-area-inset-top, 0px) + 60px));
+            }
+
+            .ai-modal-footer {
+                padding-bottom: max(30px, calc(env(safe-area-inset-bottom, 0px) + 15px));
+            }
+
+            /* Prevent body scroll when modal is open */
+            body.modal-open {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
             }
         }
 
@@ -1899,9 +1912,10 @@
             modal.classList.add('active');
             document.getElementById('ai-chat-topic').textContent = title;
 
-            // Hide bottom nav on mobile when chat opens
+            // Hide bottom nav and prevent body scroll on mobile when chat opens
             if (window.innerWidth <= 768) {
                 document.querySelector('.bottom-nav').style.display = 'none';
+                document.body.classList.add('modal-open');
             }
 
             // Reset conversation
@@ -1939,8 +1953,9 @@ I can help you dive deeper into this topic. What would you like to know more abo
             document.getElementById('ai-modal').classList.remove('active');
             document.getElementById('aiInput').value = '';
 
-            // Show bottom nav again
+            // Show bottom nav again and restore body scroll
             document.querySelector('.bottom-nav').style.display = 'flex';
+            document.body.classList.remove('modal-open');
         }
 
         async function sendAIMessage() {
