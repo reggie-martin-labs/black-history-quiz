@@ -844,16 +844,21 @@
                 display: flex;
                 align-items: center;
                 gap: 5px;
-                top: max(15px, env(safe-area-inset-top, 15px));
+                top: calc(env(safe-area-inset-top, 10px) + 10px);
+                left: 10px;
                 z-index: 1001;
             }
 
             .ai-chat-header {
-                padding-top: max(60px, calc(env(safe-area-inset-top, 0px) + 60px));
+                padding-top: calc(env(safe-area-inset-top, 15px) + 50px);
+                padding-left: 15px;
+                padding-right: 15px;
+                padding-bottom: 15px;
             }
 
             .ai-modal-footer {
-                padding-bottom: max(30px, calc(env(safe-area-inset-bottom, 0px) + 15px));
+                padding: 15px;
+                padding-bottom: calc(env(safe-area-inset-bottom, 15px) + 15px);
             }
 
             /* Prevent body scroll when modal is open */
@@ -865,7 +870,7 @@
         }
 
         .ai-chat-header {
-            text-align: center;
+            text-align: left;
             padding: 30px 30px 20px 30px;
             border-bottom: 2px solid #FFC72C;
             background: #FFF8E7;
@@ -2003,25 +2008,71 @@ When responding:
 - End with exactly ONE follow-up question to encourage deeper exploration
 - Use proper paragraphs (separated by blank lines)
 
+For the initial greeting, share ONE surprising, quirky, or fun related fact that will hook their interest, then invite them to ask about it or anything else. Format: "Did you know [interesting hook]? Feel free to ask me about that or anything else you want to know!"
+
 Format your response with clear paragraph breaks for readability.` }
             ];
 
-            // Initial AI message
+            // Generate interesting AI hook immediately
             const messagesContainer = document.getElementById('aiChatMessages');
             messagesContainer.innerHTML = `
                 <div class="ai-message assistant">
-                    <strong>📚 Let's explore this topic!</strong>
-
-${fact}
-
-I can help you dive deeper into this topic. What would you like to know more about?
+                    <div class="loading-indicator active">Thinking...</div>
                 </div>
             `;
 
-            currentConversation.push({
-                role: 'assistant',
-                content: `Let's explore this topic!\n\n${fact}\n\nI can help you dive deeper into this topic. What would you like to know more about?`
-            });
+            // Call AI to generate interesting opening
+            generateInterestingOpening(title, fact);
+        }
+
+        async function generateInterestingOpening(title, fact) {
+            const messagesContainer = document.getElementById('aiChatMessages');
+
+            try {
+                // Ask AI for an interesting hook
+                const prompt = `Share ONE surprising, quirky, or fun fact related to "${title}". Keep it to 1-2 sentences. Format it as: "Did you know [interesting fact]? Feel free to ask me about that or anything else you want to know!"`;
+
+                currentConversation.push({
+                    role: 'user',
+                    content: prompt
+                });
+
+                const response = await fetch('http://localhost:3000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: currentConversation })
+                });
+
+                if (!response.ok) throw new Error('API call failed');
+
+                const data = await response.json();
+                const aiResponse = data.message;
+
+                currentConversation.push({
+                    role: 'assistant',
+                    content: aiResponse
+                });
+
+                messagesContainer.innerHTML = `
+                    <div class="ai-message assistant">
+                        ${aiResponse.replace(/\n/g, '<br><br>')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error generating opening:', error);
+                // Fallback to static message
+                messagesContainer.innerHTML = `
+                    <div class="ai-message assistant">
+                        ${fact}<br><br>
+                        Feel free to ask me anything you want to know about this topic!
+                    </div>
+                `;
+
+                currentConversation.push({
+                    role: 'assistant',
+                    content: `${fact}\n\nFeel free to ask me anything you want to know about this topic!`
+                });
+            }
         }
 
         function closeAIChat() {
