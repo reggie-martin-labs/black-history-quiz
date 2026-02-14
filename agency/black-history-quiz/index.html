@@ -898,6 +898,7 @@
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
+            text-align: left;
         }
 
         .ai-message.assistant {
@@ -2060,17 +2061,18 @@ Format your response with clear paragraph breaks for readability.` }
                 `;
             } catch (error) {
                 console.error('Error generating opening:', error);
-                // Fallback to static message
+                // Fallback to static message (backend not deployed yet)
                 messagesContainer.innerHTML = `
-                    <div class="ai-message assistant">
+                    <div class="ai-message assistant" style="text-align: left;">
+                        <strong>About ${title}:</strong><br><br>
                         ${fact}<br><br>
-                        Feel free to ask me anything you want to know about this topic!
+                        💡 <em>Once the backend is deployed, I'll share interesting facts and answer your questions!</em>
                     </div>
                 `;
 
                 currentConversation.push({
                     role: 'assistant',
-                    content: `${fact}\n\nFeel free to ask me anything you want to know about this topic!`
+                    content: `About ${title}:\n\n${fact}\n\n💡 Once the backend is deployed, I'll share interesting facts and answer your questions!`
                 });
             }
         }
