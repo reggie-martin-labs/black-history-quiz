@@ -1669,10 +1669,9 @@
             // Arcade style: Show leaderboard immediately with player's score highlighted
             displayResultsLeaderboardWithTempScore();
 
-            // Show name input
+            // Show name input (don't focus on mobile - keyboard blocks view)
             document.getElementById('nameInputContainer').style.display = 'block';
             document.getElementById('playerName').value = '';
-            document.getElementById('playerName').focus();
         }
 
         function restartQuiz() {
@@ -1772,15 +1771,32 @@
             // Sort by score
             tempLeaderboard.sort((a, b) => b.score - a.score);
 
+            // Find player's position
+            const playerIndex = tempLeaderboard.findIndex(entry => entry.isTemp);
+
+            // Show only 3 entries: contextual based on player position
+            let displayEntries = [];
+            if (playerIndex <= 1) {
+                // Player is in top 2, show top 3
+                displayEntries = tempLeaderboard.slice(0, 3);
+            } else if (playerIndex >= tempLeaderboard.length - 2) {
+                // Player is in bottom 2, show bottom 3
+                displayEntries = tempLeaderboard.slice(-3);
+            } else {
+                // Player is in middle, show: above, player, below
+                displayEntries = tempLeaderboard.slice(playerIndex - 1, playerIndex + 2);
+            }
+
             let html = '';
-            tempLeaderboard.slice(0, 20).forEach((entry, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+            displayEntries.forEach((entry) => {
+                const actualIndex = tempLeaderboard.indexOf(entry);
+                const medal = actualIndex === 0 ? '🥇' : actualIndex === 1 ? '🥈' : actualIndex === 2 ? '🥉' : '';
                 const isCurrentPlayer = entry.isTemp;
                 const currentClass = isCurrentPlayer ? 'current-player' : '';
 
                 html += `
                     <div class="leaderboard-entry ${currentClass}">
-                        <span class="rank">${medal || (index + 1) + '.'}</span>
+                        <span class="rank">${medal || (actualIndex + 1) + '.'}</span>
                         <span class="name">${entry.isTemp ? 'YOU' : entry.name}</span>
                         <span class="difficulty-tag ${entry.difficulty}">${entry.difficulty.charAt(0).toUpperCase()}</span>
                         <span class="score">${entry.score}</span>
