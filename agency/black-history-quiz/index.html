@@ -1015,9 +1015,18 @@
         <!-- Results Screen -->
         <div class="results-screen">
             <div class="results-container">
-                <h2 style="color: #000000; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(255, 199, 44, 0.3);">Quiz Complete!</h2>
-                <div class="final-score" id="finalScore"></div>
-                <div class="results-message" id="resultsMessage"></div>
+                <h2 style="color: #000000; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(255, 199, 44, 0.3);">Quiz Complete!</h2>
+
+                <!-- Compact Stats -->
+                <div style="text-align: center; font-size: 1.3em; color: #000000; margin-bottom: 25px; font-weight: bold;">
+                    <span id="correctAnswers">0</span> correct • <span id="finalScore">0</span> points
+                </div>
+
+                <!-- Results Leaderboard -->
+                <div class="results-leaderboard" id="resultsLeaderboard">
+                    <h3 id="resultsLeaderboardTitle">🏆 Leaderboard 🏆</h3>
+                    <div id="resultsLeaderboardContent"></div>
+                </div>
 
                 <!-- Name Input (Arcade Style) -->
                 <div class="name-input-container" id="nameInputContainer">
@@ -1029,25 +1038,9 @@
                     </div>
                 </div>
 
-                <!-- Results Leaderboard -->
-                <div class="results-leaderboard" id="resultsLeaderboard">
-                    <h3 id="resultsLeaderboardTitle">🏆 Leaderboard 🏆</h3>
-                    <div id="resultsLeaderboardContent"></div>
-                </div>
-
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value" id="correctAnswers">0</div>
-                        <div class="stat-label">Correct</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value" id="incorrectAnswers">0</div>
-                        <div class="stat-label">Incorrect</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value" id="accuracyPercent">0%</div>
-                        <div class="stat-label">Accuracy</div>
-                    </div>
+                <!-- Thank You Message -->
+                <div style="text-align: center; color: #666; margin-top: 25px; font-size: 1.1em; font-style: italic;">
+                    Thanks for playing! There's so much more to learn!
                 </div>
             </div>
         </div>
@@ -1669,25 +1662,9 @@
             document.querySelector('.quiz-screen').classList.remove('active');
             document.querySelector('.results-screen').classList.add('active');
 
-            document.getElementById('finalScore').textContent = score + ' points';
+            // Update compact stats display
+            document.getElementById('finalScore').textContent = score;
             document.getElementById('correctAnswers').textContent = correctCount;
-            document.getElementById('incorrectAnswers').textContent = incorrectCount;
-
-            const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
-            document.getElementById('accuracyPercent').textContent = accuracy + '%';
-
-            let message = '';
-            if (accuracy >= 90) {
-                message = 'Outstanding! You have excellent knowledge of Black history!';
-            } else if (accuracy >= 70) {
-                message = 'Great job! You know your Black history well!';
-            } else if (accuracy >= 50) {
-                message = 'Good effort! Keep learning about Black history!';
-            } else {
-                message = 'Thanks for playing! There\'s so much more to learn!';
-            }
-
-            document.getElementById('resultsMessage').textContent = message;
 
             // Arcade style: Show leaderboard immediately with player's score highlighted
             displayResultsLeaderboardWithTempScore();
@@ -1753,7 +1730,27 @@
         }
 
         function skipScore() {
-            // Just return to start screen without saving (arcade style)
+            // Save as "Anonymous" (arcade style)
+            const leaderboard = getLeaderboard();
+
+            leaderboard.push({
+                name: 'Anonymous',
+                score: score,
+                difficulty: currentDifficulty,
+                date: new Date().toISOString()
+            });
+
+            // Sort by score (descending) and keep top 20
+            leaderboard.sort((a, b) => b.score - a.score);
+            const topScores = leaderboard.slice(0, 20);
+
+            // Save to localStorage
+            saveLeaderboard(topScores);
+
+            // Reload leaderboards on home screen
+            loadLeaderboards();
+
+            // Return to start screen
             restartQuiz();
         }
 
