@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black History Month Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #CE1126 0%, #000000 50%, #006B3F 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #FFF8E7;
+            border: 4px solid #FFC72C;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            width: 100%;
+            padding: 20px 40px 100px 40px;
+            margin-bottom: 80px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #000000;
+            font-size: 1.6em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(255, 199, 44, 0.3);
+        }
+
+        .subtitle {
+            display: none;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #000000;
+            border-top: 3px solid #FFC72C;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+            z-index: 100;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 12px;
+            flex: 1;
+            max-width: 120px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 199, 44, 0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 199, 44, 0.2);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.2);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #FFF8E7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item.active .nav-label {
+            color: #FFC72C;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .start-screen, .quiz-screen, .results-screen {
+            display: none;
+        }
+
+        .start-screen.active, .quiz-screen.active, .results-screen.active {
+            display: block;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn-easy {
+            background: #006B3F;
+            color: white;
+        }
+
+        .btn-easy:hover {
+            background: #005030;
+            transform: translateY(-2px);
+        }
+
+        .btn-medium {
+            background: #FFC72C;
+            color: #000000;
+        }
+
+        .btn-medium:hover {
+            background: #E6B022;
+            transform: translateY(-2px);
+        }
+
+        .btn-hard {
+            background: #CE1126;
+            color: white;
+        }
+
+        .btn-hard:hover {
+            background: #A50E1F;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #000000;
+            color: #FFC72C;
+            border: 2px solid #FFC72C;
+        }
+
+        .btn-primary:hover {
+            background: #FFC72C;
+            color: #000000;
+            transform: translateY(-2px);
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #000000;
+            border-radius: 10px;
+            border: 2px solid #FFC72C;
+        }
+
+        .score, .timer, .question-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #FFC72C;
+        }
+
+        .timer {
+            color: #006B3F;
+        }
+
+        .timer.warning {
+            color: #CE1126;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .question {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .badge-easy {
+            background: #006B3F;
+            color: white;
+        }
+
+        .badge-medium {
+            background: #FFC72C;
+            color: #000000;
+        }
+
+        .badge-hard {
+            background: #CE1126;
+            color: white;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            font-size: 1.1em;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            border-color: #FFC72C;
+            background: #FFF8E7;
+            transform: translateX(5px);
+        }
+
+        .answer-btn.correct {
+            background: #006B3F;
+            color: white;
+            border-color: #006B3F;
+        }
+
+        .answer-btn.incorrect {
+            background: #CE1126;
+            color: white;
+            border-color: #CE1126;
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .fact-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #FFF8E7;
+            border-left: 4px solid #FFC72C;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .fact-container.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fact-title {
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .fact-text {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .results-container {
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #000000;
+            margin: 30px 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(255, 199, 44, 0.3);
+        }
+
+        .results-message {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #000000;
+            border-radius: 10px;
+            border: 2px solid #FFC72C;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFC72C;
+        }
+
+        .stat-label {
+            color: #FFF8E7;
+            margin-top: 5px;
+        }
+
+        .leaderboards {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 3px solid #FFC72C;
+        }
+
+        .leaderboards-title {
+            text-align: center;
+            color: #000000;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 3px rgba(255, 199, 44, 0.3);
+        }
+
+        .leaderboard {
+            background: #000000;
+            border: 2px solid #FFC72C;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .leaderboard-header {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            margin: 5px 0;
+            background: #FFF8E7;
+            border-radius: 5px;
+            font-size: 0.95em;
+            gap: 10px;
+        }
+
+        .leaderboard-entry .rank {
+            font-weight: bold;
+            color: #000000;
+            min-width: 30px;
+        }
+
+        .leaderboard-entry .name {
+            flex: 1;
+            color: #333;
+        }
+
+        .leaderboard-entry .difficulty-tag {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .difficulty-tag.easy {
+            background: #006B3F;
+            color: white;
+        }
+
+        .difficulty-tag.medium {
+            background: #FFC72C;
+            color: #000000;
+        }
+
+        .difficulty-tag.hard {
+            background: #CE1126;
+            color: white;
+        }
+
+        .leaderboard-entry .score {
+            font-weight: bold;
+            color: #CE1126;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .leaderboard-empty {
+            text-align: center;
+            color: #FFC72C;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .name-input-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #FFF8E7;
+            border: 2px solid #FFC72C;
+            border-radius: 10px;
+        }
+
+        .name-input-container h3 {
+            color: #000000;
+            margin-bottom: 15px;
+        }
+
+        .name-input {
+            padding: 12px 20px;
+            font-size: 1.1em;
+            border: 2px solid #FFC72C;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 300px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        .results-leaderboard {
+            margin: 30px 0;
+            padding: 20px;
+            background: #000000;
+            border: 3px solid #FFC72C;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results-leaderboard.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        .results-leaderboard h3 {
+            color: #FFC72C;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .leaderboard-entry.current-player {
+            background: linear-gradient(135deg, #FFC72C 0%, #FFD700 100%);
+            border: 2px solid #000000;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(255, 199, 44, 0.4);
+            animation: highlightPulse 2s ease-in-out infinite;
+        }
+
+        .leaderboard-entry.current-player .rank,
+        .leaderboard-entry.current-player .name,
+        .leaderboard-entry.current-player .score {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        @keyframes highlightPulse {
+            0%, 100% {
+                box-shadow: 0 4px 8px rgba(255, 199, 44, 0.4);
+            }
+            50% {
+                box-shadow: 0 6px 12px rgba(255, 199, 44, 0.6);
+            }
+        }
+
+        .scoring-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #FFF8E7;
+            border: 2px solid #FFC72C;
+            border-radius: 10px;
+        }
+
+        .scoring-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .scoring-info-header h3 {
+            color: #000000;
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .scoring-info-toggle {
+            font-size: 1.5em;
+            color: #000000;
+            transition: transform 0.3s;
+        }
+
+        .scoring-info-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .scoring-info-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .scoring-info-content.open {
+            max-height: 500px;
+            margin-top: 15px;
+        }
+
+        .scoring-info-content p {
+            color: #333;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        .scoring-info-content strong {
+            color: #000000;
+        }
+
+        .scoring-table {
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .scoring-table div {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .scoring-table div:last-child {
+            border-bottom: none;
+        }
+
+        /* Study Mode */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            border: 2px solid #FFC72C;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(255, 199, 44, 0.3);
+            border-color: #FFD700;
+        }
+
+        .category-card h3 {
+            color: #FFC72C;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .category-card p {
+            color: #FFF8E7;
+            font-size: 0.9em;
+        }
+
+        .facts-container {
+            display: none;
+        }
+
+        .facts-container.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: #000000;
+            color: #FFC72C;
+            border: 2px solid #FFC72C;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #FFC72C;
+            color: #000000;
+        }
+
+        .fact-card {
+            background: #FFF8E7;
+            border-left: 4px solid #FFC72C;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .fact-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left-color: #CE1126;
+        }
+
+        .fact-card h4 {
+            color: #000000;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .fact-card p {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .learn-more-btn {
+            background: #006B3F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .learn-more-btn:hover {
+            background: #005030;
+            transform: translateX(3px);
+        }
+
+        /* AI Chat Modal */
+        .ai-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .ai-modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ai-modal-content {
+            background: #FFF8E7;
+            border: 4px solid #FFC72C;
+            border-radius: 20px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            margin: 20px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #CE1126;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.3em;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: #A50E1F;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #000000;
+            color: #FFC72C;
+            border: 2px solid #FFC72C;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10;
+            display: none;
+        }
+
+        .back-button:hover {
+            background: #FFC72C;
+            color: #000000;
+        }
+
+        /* Mobile Full-Screen Overlay */
+        @media (max-width: 768px) {
+            .ai-modal {
+                padding: 0;
+                background: #FFF8E7;
+                align-items: stretch;
+            }
+
+            .ai-modal.active .ai-modal-content {
+                animation: slideInRight 0.3s ease-out;
+            }
+
+            .ai-modal-content {
+                max-width: 100%;
+                max-height: 100vh;
+                height: 100vh;
+                margin: 0;
+                border: none;
+                border-radius: 0;
+            }
+
+            .close-modal {
+                display: none;
+            }
+
+            .back-button {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .ai-chat-header {
+                padding-top: 60px;
+            }
+        }
+
+        .ai-chat-header {
+            text-align: center;
+            padding: 30px 30px 20px 30px;
+            border-bottom: 2px solid #FFC72C;
+            background: #FFF8E7;
+            border-radius: 20px 20px 0 0;
+            flex-shrink: 0;
+        }
+
+        .ai-chat-header h2 {
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 30px;
+            background: white;
+            margin: 0;
+        }
+
+        .ai-message {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .ai-message.assistant {
+            background: #E8F5E9;
+            border-left: 4px solid #006B3F;
+        }
+
+        .ai-message.user {
+            background: #FFF3E0;
+            border-left: 4px solid #FFC72C;
+        }
+
+        .ai-modal-footer {
+            background: #FFF8E7;
+            padding: 15px 30px 30px 30px;
+            border-top: 2px solid #FFC72C;
+            border-radius: 0 0 20px 20px;
+            flex-shrink: 0;
+        }
+
+        .ai-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ai-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #FFC72C;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .ai-send-btn {
+            background: #000000;
+            color: #FFC72C;
+            border: 2px solid #FFC72C;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .ai-send-btn:hover {
+            background: #FFC72C;
+            color: #000000;
+        }
+
+        .ai-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading-indicator {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+            font-style: italic;
+            background: #FFF8E7;
+        }
+
+        .loading-indicator.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Black History Month 🎉</h1>
+            <p class="subtitle">Learn, Play, and Celebrate Black History</p>
+        </div>
+
+        <!-- Single Player Tab -->
+        <div id="singleplayer-tab" class="tab-content active">
+        <!-- Start Screen -->
+        <div class="start-screen active">
+            <p style="text-align: center; color: #666; margin-bottom: 20px; font-size: 1.1em;">
+                Choose your difficulty level to begin!
+            </p>
+            <div class="difficulty-buttons">
+                <button class="btn btn-easy" onclick="startQuiz('easy')">Easy</button>
+                <button class="btn btn-medium" onclick="startQuiz('medium')">Medium</button>
+                <button class="btn btn-hard" onclick="startQuiz('hard')">Hard</button>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="leaderboards">
+                <h2 class="leaderboards-title">🏆 Top Scores 🏆</h2>
+                <div class="leaderboard">
+                    <div id="leaderboard-all"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="quiz-screen">
+            <div class="quiz-header">
+                <div class="question-number">Question <span id="currentQuestion">1</span>/<span id="totalQuestions">10</span></div>
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="timer" id="timer">Time: 30s</div>
+            </div>
+
+            <div class="question-container">
+                <div class="difficulty-badge" id="difficultyBadge"></div>
+                <div class="question" id="question"></div>
+                <div class="answers" id="answers"></div>
+                <div class="fact-container" id="factContainer">
+                    <div class="fact-title">Did you know?</div>
+                    <div class="fact-text" id="factText"></div>
+                </div>
+                <button class="btn btn-primary next-btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen">
+            <div class="results-container">
+                <h2 style="color: #000000; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(255, 199, 44, 0.3);">Quiz Complete!</h2>
+                <div class="final-score" id="finalScore"></div>
+                <div class="results-message" id="resultsMessage"></div>
+
+                <!-- Name Input -->
+                <div class="name-input-container" id="nameInputContainer">
+                    <h3>🏆 Save Your Score to the Leaderboard! 🏆</h3>
+                    <input type="text" id="playerName" class="name-input" placeholder="Enter your name" maxlength="20">
+                    <br>
+                    <button class="btn btn-primary" onclick="saveScore()" style="margin-top: 15px;">Save Score</button>
+                </div>
+
+                <!-- Results Leaderboard -->
+                <div class="results-leaderboard" id="resultsLeaderboard">
+                    <h3 id="resultsLeaderboardTitle">🏆 Leaderboard 🏆</h3>
+                    <div id="resultsLeaderboardContent"></div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="correctAnswers">0</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="incorrectAnswers">0</div>
+                        <div class="stat-label">Incorrect</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="accuracyPercent">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="restartQuiz()">Play Again</button>
+            </div>
+        </div>
+        </div>
+        <!-- End Single Player Tab -->
+
+        <!-- Study Mode Tab -->
+        <div id="study-tab" class="tab-content">
+            <div class="category-selector">
+                <h2 style="text-align: center; color: #000000; margin-bottom: 25px;">📚 Browse by Topic</h2>
+                <div class="category-grid">
+                    <div class="category-card" onclick="showCategory('civil-rights')">
+                        <h3>✊ Civil Rights</h3>
+                        <p>Movement leaders, protests, and victories</p>
+                    </div>
+                    <div class="category-card" onclick="showCategory('arts-culture')">
+                        <h3>🎨 Arts & Culture</h3>
+                        <p>Music, literature, film, and art</p>
+                    </div>
+                    <div class="category-card" onclick="showCategory('science')">
+                        <h3>🔬 Science & Innovation</h3>
+                        <p>Inventors, mathematicians, and pioneers</p>
+                    </div>
+                    <div class="category-card" onclick="showCategory('politics')">
+                        <h3>🏛️ Politics & Leadership</h3>
+                        <p>Elected officials and political movements</p>
+                    </div>
+                    <div class="category-card" onclick="showCategory('sports')">
+                        <h3>⚽ Sports</h3>
+                        <p>Athletes who broke barriers</p>
+                    </div>
+                    <div class="category-card" onclick="showCategory('business')">
+                        <h3>💼 Business & Economics</h3>
+                        <p>Entrepreneurs and economic empowerment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facts containers for each category -->
+            <div id="civil-rights-facts" class="facts-container">
+                <button class="back-btn" onclick="backToCategories()">← Back to Categories</button>
+                <h2 style="color: #000000; margin-bottom: 20px;">✊ Civil Rights Movement</h2>
+                <div id="civil-rights-facts-list"></div>
+            </div>
+
+            <div id="arts-culture-facts" class="facts-container">
+                <button class="back-btn" onclick="backToCategories()">← Back to Categories</button>
+                <h2 style="color: #000000; margin-bottom: 20px;">🎨 Arts & Culture</h2>
+                <div id="arts-culture-facts-list"></div>
+            </div>
+
+            <div id="science-facts" class="facts-container">
+                <button class="back-btn" onclick="backToCategories()">← Back to Categories</button>
+                <h2 style="color: #000000; margin-bottom: 20px;">🔬 Science & Innovation</h2>
+                <div id="science-facts-list"></div>
+            </div>
+
+            <div id="politics-facts" class="facts-container">
+                <button class="back-btn" onclick="backToCategories()">← Back to Categories</button>
+                <h2 style="color: #000000; margin-bottom: 20px;">🏛️ Politics & Leadership</h2>
+                <div id="politics-facts-list"></div>
+            </div>
+
+            <div id="sports-facts" class="facts-container">
+                <button class="back-btn" onclick="backToCategories()">← Back to Categories</button>
+                <h2 style="color: #000000; margin-bottom: 20px;">⚽ Sports</h2>
+                <div id="sports-facts-list"></div>
+            </div>
+
+            <div id="business-facts" class="facts-container">
+                <button class="back-btn" onclick="backToCategories()">← Back to Categories</button>
+                <h2 style="color: #000000; margin-bottom: 20px;">💼 Business & Economics</h2>
+                <div id="business-facts-list"></div>
+            </div>
+        </div>
+        <!-- End Study Mode Tab -->
+
+        <!-- Multiplayer Tab -->
+        <div id="multiplayer-tab" class="tab-content">
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 80px; margin-bottom: 20px;">🏆</div>
+                <h2 style="color: #000000; margin-bottom: 15px;">Multiplayer Mode</h2>
+                <p style="color: #666; font-size: 1.2em; margin-bottom: 30px;">
+                    Battle your friends in real-time quiz competitions!
+                </p>
+                <div style="background: #FFF8E7; border: 2px solid #FFC72C; border-radius: 15px; padding: 30px; max-width: 500px; margin: 0 auto;">
+                    <p style="color: #CE1126; font-weight: bold; font-size: 1.3em; margin-bottom: 15px;">🚧 Coming Soon! 🚧</p>
+                    <p style="color: #333; line-height: 1.6;">
+                        We're building an awesome multiplayer experience where you can:
+                    </p>
+                    <ul style="text-align: left; color: #333; margin: 20px 0; line-height: 1.8;">
+                        <li>🎯 Challenge friends to quiz battles</li>
+                        <li>⚡ Race against the clock</li>
+                        <li>🏅 Earn badges and achievements</li>
+                        <li>📊 Track your rankings</li>
+                    </ul>
+                    <p style="color: #666; font-style: italic; margin-top: 20px;">
+                        Stay tuned for updates!
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- End Multiplayer Tab -->
+
+        <!-- About Tab -->
+        <div id="about-tab" class="tab-content">
+            <h2 style="text-align: center; color: #000000; margin-bottom: 25px;">About This App</h2>
+
+            <div style="background: #FFF8E7; border: 2px solid #FFC72C; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #000000; margin-bottom: 15px;">💡 About</h3>
+                <p style="color: #333; line-height: 1.6;">This app celebrates Black History Month by making learning interactive and fun. Explore important moments, influential figures, and lasting contributions to society through quiz challenges and in-depth study.</p>
+            </div>
+
+            <div style="background: #FFF8E7; border: 2px solid #FFC72C; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #000000; margin-bottom: 15px;">🎮 Game Modes</h3>
+                <p style="color: #333; line-height: 1.6; margin-bottom: 10px;"><strong>Single Player:</strong> Test your knowledge with timed quizzes across three difficulty levels.</p>
+                <p style="color: #333; line-height: 1.6; margin-bottom: 10px;"><strong>Study Mode:</strong> Browse fascinating facts by topic and dive deeper with AI-powered learning conversations.</p>
+                <p style="color: #333; line-height: 1.6;"><strong>Multiplayer (Coming Soon):</strong> Compete against others in real-time!</p>
+            </div>
+
+            <div style="background: #FFF8E7; border: 2px solid #FFC72C; border-radius: 10px; padding: 20px;">
+                <h3 style="color: #000000; margin-bottom: 15px;">ℹ️ How Scoring Works</h3>
+                <p style="color: #333; line-height: 1.6;"><strong>Each correct answer earns:</strong></p>
+                <div class="scoring-table">
+                    <div>🟢 <strong>Easy:</strong> 10 points + time bonus</div>
+                    <div>🟡 <strong>Medium:</strong> 20 points + time bonus</div>
+                    <div>🔴 <strong>Hard:</strong> 30 points + time bonus</div>
+                </div>
+                <p style="color: #333; line-height: 1.6; margin-top: 15px;"><strong>Time Bonus:</strong> Up to 6 extra points based on speed (Time Left ÷ 5)</p>
+                <p style="color: #333; line-height: 1.6;"><strong>Maximum Scores:</strong></p>
+                <div class="scoring-table">
+                    <div>🟢 Easy: 80 points (5 × 16)</div>
+                    <div>🟡 Medium: 130 points (5 × 26)</div>
+                    <div>🔴 Hard: 180 points (5 × 36)</div>
+                </div>
+                <p style="font-style: italic; color: #666; margin-top: 15px;">💡 All scores compete on one leaderboard - can you reach the top?</p>
+            </div>
+        </div>
+        <!-- End About Tab -->
+
+        <!-- AI Chat Modal -->
+        <div id="ai-modal" class="ai-modal">
+            <div class="ai-modal-content">
+                <button class="back-button" onclick="closeAIChat()">← Back</button>
+                <button class="close-modal" onclick="closeAIChat()">×</button>
+                <div class="ai-chat-header">
+                    <h2>🤖 Learn More</h2>
+                    <p id="ai-chat-topic" style="color: #666;"></p>
+                </div>
+                <div class="ai-chat-messages" id="aiChatMessages">
+                    <!-- Messages will be added here -->
+                </div>
+                <div class="ai-modal-footer">
+                    <div class="loading-indicator" id="loadingIndicator">Thinking...</div>
+                    <div class="ai-input-container">
+                        <input type="text" id="aiInput" class="ai-input" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') sendAIMessage()">
+                        <button class="ai-send-btn" id="aiSendBtn" onclick="sendAIMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('singleplayer')">
+                <div class="nav-icon">🎮</div>
+                <div class="nav-label">Play</div>
+            </div>
+            <div class="nav-item" onclick="switchTab('study')">
+                <div class="nav-icon">📚</div>
+                <div class="nav-label">Learn</div>
+            </div>
+            <div class="nav-item" onclick="switchTab('multiplayer')">
+                <div class="nav-icon">🏆</div>
+                <div class="nav-label">Battle</div>
+            </div>
+            <div class="nav-item" onclick="switchTab('about')">
+                <div class="nav-icon">ℹ️</div>
+                <div class="nav-label">Info</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {
+            easy: [
+                {
+                    question: "Who is known as the 'Mother of the Civil Rights Movement'?",
+                    answers: ["Rosa Parks", "Harriet Tubman", "Maya Angelou", "Coretta Scott King"],
+                    correct: 0,
+                    fact: "Rosa Parks' refusal to give up her seat on a Montgomery bus on December 1, 1955, sparked the Montgomery Bus Boycott, a pivotal event in the Civil Rights Movement that lasted 381 days."
+                },
+                {
+                    question: "Which president officially recognized Black History Month?",
+                    answers: ["Jimmy Carter", "Gerald Ford", "Ronald Reagan", "Bill Clinton"],
+                    correct: 1,
+                    fact: "President Gerald Ford officially recognized Black History Month in 1976, during the United States Bicentennial. He urged Americans to 'seize the opportunity to honor the too-often neglected accomplishments of Black Americans.'"
+                },
+                {
+                    question: "Who was the first African American Supreme Court Justice?",
+                    answers: ["Clarence Thomas", "Thurgood Marshall", "Ketanji Brown Jackson", "Sonia Sotomayor"],
+                    correct: 1,
+                    fact: "Thurgood Marshall was appointed to the Supreme Court in 1967 by President Lyndon B. Johnson. Before his appointment, he was a legendary civil rights lawyer who won the landmark Brown v. Board of Education case."
+                },
+                {
+                    question: "In what year did Martin Luther King Jr. deliver his famous 'I Have a Dream' speech?",
+                    answers: ["1963", "1965", "1968", "1960"],
+                    correct: 0,
+                    fact: "Dr. King delivered his iconic speech on August 28, 1963, during the March on Washington for Jobs and Freedom. Over 250,000 people attended this historic event at the Lincoln Memorial."
+                },
+                {
+                    question: "Who was the first African American to win an Academy Award?",
+                    answers: ["Sidney Poitier", "Hattie McDaniel", "Denzel Washington", "Dorothy Dandridge"],
+                    correct: 1,
+                    fact: "Hattie McDaniel won the Academy Award for Best Supporting Actress in 1940 for her role in 'Gone with the Wind.' Despite this achievement, she faced segregation at the ceremony and had to sit at a separate table."
+                },
+                {
+                    question: "Who was known as 'The Moses of Her People' for leading enslaved people to freedom?",
+                    answers: ["Sojourner Truth", "Harriet Tubman", "Ida B. Wells", "Mary McLeod Bethune"],
+                    correct: 1,
+                    fact: "Harriet Tubman made 13 missions to rescue approximately 70 enslaved people using the Underground Railroad. She later served as a spy and scout for the Union Army during the Civil War."
+                },
+                {
+                    question: "What month is Black History Month celebrated in the United States?",
+                    answers: ["January", "February", "March", "December"],
+                    correct: 1,
+                    fact: "Black History Month is celebrated in February. It began as 'Negro History Week' in 1926, created by historian Carter G. Woodson, and was expanded to a month-long celebration in 1976."
+                },
+                {
+                    question: "Who was the first African American President of the United States?",
+                    answers: ["Barack Obama", "Jesse Jackson", "Colin Powell", "Kamala Harris"],
+                    correct: 0,
+                    fact: "Barack Obama was elected as the 44th President of the United States in 2008 and served two terms until 2017. His presidency was a historic milestone in American history."
+                },
+                {
+                    question: "Which famous boxer was known as 'The Greatest'?",
+                    answers: ["Joe Louis", "Muhammad Ali", "Mike Tyson", "Sugar Ray Robinson"],
+                    correct: 1,
+                    fact: "Muhammad Ali was not only a three-time world heavyweight champion but also a prominent activist who stood up for civil rights and refused to be drafted into the Vietnam War on moral grounds."
+                },
+                {
+                    question: "Who wrote the novel 'Beloved' which won the Pulitzer Prize?",
+                    answers: ["Maya Angelou", "Toni Morrison", "Alice Walker", "Zora Neale Hurston"],
+                    correct: 1,
+                    fact: "Toni Morrison won the Pulitzer Prize for 'Beloved' in 1988. She later became the first African American woman to win the Nobel Prize in Literature in 1993."
+                },
+                {
+                    question: "Who was the first African American to play in Major League Baseball?",
+                    answers: ["Willie Mays", "Jackie Robinson", "Hank Aaron", "Satchel Paige"],
+                    correct: 1,
+                    fact: "Jackie Robinson broke baseball's color barrier in 1947 when he joined the Brooklyn Dodgers. His number 42 has been retired across all MLB teams in his honor."
+                },
+                {
+                    question: "What famous speech did Sojourner Truth deliver in 1851?",
+                    answers: ["'I Have a Dream'", "'Ain't I a Woman?'", "'Give Me Liberty'", "'A Call to Action'"],
+                    correct: 1,
+                    fact: "Sojourner Truth's 'Ain't I a Woman?' speech was delivered at the Women's Rights Convention in Ohio. She powerfully advocated for both abolition and women's rights."
+                },
+                {
+                    question: "Who was the first African American woman to become a self-made millionaire?",
+                    answers: ["Oprah Winfrey", "Madam C.J. Walker", "Mary McLeod Bethune", "Maggie Walker"],
+                    correct: 1,
+                    fact: "Madam C.J. Walker built her fortune through her line of hair care products for Black women in the early 1900s. She was also a philanthropist and activist."
+                },
+                {
+                    question: "Which holiday honors Dr. Martin Luther King Jr.?",
+                    answers: ["Third Monday in January", "First Monday in February", "Last Monday in May", "Fourth Thursday in November"],
+                    correct: 0,
+                    fact: "Martin Luther King Jr. Day is observed on the third Monday of January each year, around the time of King's birthday (January 15). It became a federal holiday in 1986."
+                },
+                {
+                    question: "Who was the first African American woman elected to the U.S. Congress?",
+                    answers: ["Kamala Harris", "Shirley Chisholm", "Barbara Jordan", "Maxine Waters"],
+                    correct: 1,
+                    fact: "Shirley Chisholm was elected to Congress in 1968, representing New York. In 1972, she became the first Black woman to run for President of the United States."
+                }
+            ],
+            medium: [
+                {
+                    question: "Who founded the Tuskegee Institute in 1881?",
+                    answers: ["W.E.B. Du Bois", "Booker T. Washington", "George Washington Carver", "Frederick Douglass"],
+                    correct: 1,
+                    fact: "Booker T. Washington founded the Tuskegee Normal and Industrial Institute (now Tuskegee University) in Alabama. The school became a leading institution for African American education and advancement."
+                },
+                {
+                    question: "What was the name of the first Black-owned and operated newspaper in the United States?",
+                    answers: ["The Chicago Defender", "Freedom's Journal", "The North Star", "The Crisis"],
+                    correct: 1,
+                    fact: "Freedom's Journal was founded in 1827 by John Russwurm and Samuel Cornish in New York City. Its motto was 'Righteousness Exalteth a Nation,' and it advocated for the abolition of slavery."
+                },
+                {
+                    question: "Who was the first African American woman to travel to space?",
+                    answers: ["Mae Jemison", "Katherine Johnson", "Dorothy Vaughan", "Mary Jackson"],
+                    correct: 0,
+                    fact: "Dr. Mae Jemison made history on September 12, 1992, aboard the Space Shuttle Endeavour. She is also a physician, engineer, and dancer who has dedicated her life to science education and diversity in STEM."
+                },
+                {
+                    question: "Which organization was founded by W.E.B. Du Bois and others in 1909?",
+                    answers: ["SCLC", "NAACP", "SNCC", "Urban League"],
+                    correct: 1,
+                    fact: "The National Association for the Advancement of Colored People (NAACP) was founded in 1909. It became the most influential civil rights organization in the United States, fighting for equality through legal challenges and advocacy."
+                },
+                {
+                    question: "Who wrote the bestselling memoir 'I Know Why the Caged Bird Sings'?",
+                    answers: ["Toni Morrison", "Alice Walker", "Maya Angelou", "Zora Neale Hurston"],
+                    correct: 2,
+                    fact: "Maya Angelou published this groundbreaking autobiography in 1969. The book explores her childhood and coming of age, addressing themes of racism, identity, and resilience."
+                },
+                {
+                    question: "What landmark Supreme Court case declared school segregation unconstitutional?",
+                    answers: ["Plessy v. Ferguson", "Brown v. Board of Education", "Loving v. Virginia", "Dred Scott v. Sandford"],
+                    correct: 1,
+                    fact: "Brown v. Board of Education (1954) unanimously ruled that racial segregation in public schools was unconstitutional, overturning the 'separate but equal' doctrine from Plessy v. Ferguson."
+                },
+                {
+                    question: "Who was known as the 'Father of Black History'?",
+                    answers: ["Carter G. Woodson", "W.E.B. Du Bois", "Frederick Douglass", "Booker T. Washington"],
+                    correct: 0,
+                    fact: "Carter G. Woodson founded 'Negro History Week' in 1926, which later became Black History Month. He dedicated his life to researching and promoting African American history."
+                },
+                {
+                    question: "Which famous abolitionist newspaper was published by Frederick Douglass?",
+                    answers: ["The Liberator", "The North Star", "Freedom's Journal", "The Crisis"],
+                    correct: 1,
+                    fact: "Frederick Douglass published 'The North Star' from 1847 to 1851. The paper advocated for the abolition of slavery and equal rights for all people."
+                },
+                {
+                    question: "Who was the first African American to win a Nobel Peace Prize?",
+                    answers: ["Martin Luther King Jr.", "Ralph Bunche", "Desmond Tutu", "Barack Obama"],
+                    correct: 1,
+                    fact: "Ralph Bunche won the Nobel Peace Prize in 1950 for his mediation in Palestine. Dr. King would later win it in 1964 for his nonviolent resistance to racial prejudice."
+                },
+                {
+                    question: "What was the name of the bus boycott that lasted 381 days?",
+                    answers: ["Birmingham Bus Boycott", "Montgomery Bus Boycott", "Selma Bus Boycott", "Atlanta Bus Boycott"],
+                    correct: 1,
+                    fact: "The Montgomery Bus Boycott (1955-1956) was sparked by Rosa Parks' arrest and led by Dr. Martin Luther King Jr. It successfully ended segregation on public buses in Montgomery, Alabama."
+                },
+                {
+                    question: "Who invented the traffic light?",
+                    answers: ["Lewis Howard Latimer", "Granville T. Woods", "Garrett Morgan", "Elijah McCoy"],
+                    correct: 2,
+                    fact: "Garrett Morgan invented the three-position traffic signal in 1923. He also invented an early version of the gas mask, which was used to save workers trapped in a tunnel explosion."
+                },
+                {
+                    question: "Which Harlem Renaissance poet wrote 'The Negro Speaks of Rivers'?",
+                    answers: ["Claude McKay", "Langston Hughes", "Countee Cullen", "James Weldon Johnson"],
+                    correct: 1,
+                    fact: "Langston Hughes wrote this iconic poem at age 17. He became one of the most important voices of the Harlem Renaissance, celebrating Black culture and life in his work."
+                },
+                {
+                    question: "Who was the first African American to serve as U.S. Secretary of State?",
+                    answers: ["Condoleezza Rice", "Colin Powell", "Eric Holder", "Susan Rice"],
+                    correct: 1,
+                    fact: "Colin Powell served as Secretary of State from 2001 to 2005 under President George W. Bush. He was also the first African American Chairman of the Joint Chiefs of Staff."
+                },
+                {
+                    question: "What year was the Emancipation Proclamation issued?",
+                    answers: ["1861", "1863", "1865", "1868"],
+                    correct: 1,
+                    fact: "President Abraham Lincoln issued the Emancipation Proclamation on January 1, 1863. It declared that all enslaved people in Confederate states were to be freed."
+                },
+                {
+                    question: "Who co-founded the Southern Christian Leadership Conference (SCLC)?",
+                    answers: ["Malcolm X", "Martin Luther King Jr.", "Jesse Jackson", "Ralph Abernathy"],
+                    correct: 1,
+                    fact: "Dr. Martin Luther King Jr. co-founded the SCLC in 1957 to coordinate and support nonviolent direct action as a method of desegregating bus systems across the South."
+                },
+                {
+                    question: "Which tennis star broke racial barriers at Wimbledon and the U.S. Open?",
+                    answers: ["Serena Williams", "Althea Gibson", "Arthur Ashe", "Venus Williams"],
+                    correct: 1,
+                    fact: "Althea Gibson became the first African American to win a Grand Slam title when she won the French Championships in 1956. She went on to win Wimbledon and the U.S. Open multiple times."
+                }
+            ],
+            hard: [
+                {
+                    question: "What was the name of the all-Black 369th Infantry Regiment that fought in WWI?",
+                    answers: ["Buffalo Soldiers", "Tuskegee Airmen", "Harlem Hellfighters", "Black Panthers"],
+                    correct: 2,
+                    fact: "The Harlem Hellfighters spent 191 days in combat during WWI, more than any other American unit. They received France's highest military honor, the Croix de Guerre, and never lost a man through capture or lost a trench."
+                },
+                {
+                    question: "Who was the first Black woman to win the Pulitzer Prize for Fiction?",
+                    answers: ["Alice Walker", "Toni Morrison", "Gwendolyn Brooks", "Zora Neale Hurston"],
+                    correct: 0,
+                    fact: "Alice Walker won the Pulitzer Prize in 1983 for her novel 'The Color Purple.' The book was later adapted into an acclaimed film by Steven Spielberg and a Broadway musical."
+                },
+                {
+                    question: "What year did the Tulsa Race Massacre occur?",
+                    answers: ["1919", "1921", "1923", "1925"],
+                    correct: 1,
+                    fact: "The Tulsa Race Massacre of 1921 destroyed the prosperous Greenwood District, known as 'Black Wall Street.' Over 35 blocks were burned, up to 300 people were killed, and thousands were left homeless in one of the worst incidents of racial violence in American history."
+                },
+                {
+                    question: "Who was the first African American to earn a PhD from Harvard University?",
+                    answers: ["W.E.B. Du Bois", "Carter G. Woodson", "Alain Locke", "Charles Drew"],
+                    correct: 0,
+                    fact: "W.E.B. Du Bois earned his PhD in History from Harvard in 1895, becoming the first African American to do so. His dissertation was titled 'The Suppression of the African Slave Trade to the United States of America, 1638-1870.'"
+                },
+                {
+                    question: "What was the name of the secret code used by enslaved people to navigate the Underground Railroad?",
+                    answers: ["Freedom Songs", "Spiritual Codes", "Follow the Drinking Gourd", "North Star Messages"],
+                    correct: 2,
+                    fact: "'Follow the Drinking Gourd' was a song that contained coded directions. The 'drinking gourd' referred to the Big Dipper constellation, which points to the North Star, helping freedom seekers navigate north to free states and Canada."
+                },
+                {
+                    question: "Who was the first African American woman bank president in the United States?",
+                    answers: ["Maggie Lena Walker", "Mary McLeod Bethune", "Madam C.J. Walker", "Biddy Mason"],
+                    correct: 0,
+                    fact: "Maggie Lena Walker became the first African American woman to charter a bank in 1903, the St. Luke Penny Savings Bank in Richmond, Virginia. She was also a successful businesswoman and civil rights activist."
+                },
+                {
+                    question: "What was the name of the 1955 Interstate Commerce Commission case that banned segregation on interstate buses?",
+                    answers: ["Browder v. Gayle", "Sarah Keys v. Carolina Coach Company", "Morgan v. Virginia", "Boynton v. Virginia"],
+                    correct: 1,
+                    fact: "Sarah Keys v. Carolina Coach Company (1955) led to the ICC banning segregation in interstate travel. Sarah Keys, a WAC private, was forcibly removed from a bus and fought the injustice all the way to the ICC."
+                },
+                {
+                    question: "Who was the founder of the Universal Negro Improvement Association (UNIA)?",
+                    answers: ["W.E.B. Du Bois", "Marcus Garvey", "A. Philip Randolph", "Booker T. Washington"],
+                    correct: 1,
+                    fact: "Marcus Garvey founded the UNIA in 1914, promoting Black nationalism and Pan-Africanism. At its peak in the 1920s, UNIA had millions of members worldwide."
+                },
+                {
+                    question: "Which mathematician's calculations were critical to NASA's early space missions?",
+                    answers: ["Mae Jemison", "Katherine Johnson", "Annie Easley", "Evelyn Boyd Granville"],
+                    correct: 1,
+                    fact: "Katherine Johnson calculated the trajectory for Alan Shepard's 1961 space flight and John Glenn's 1962 orbital mission. Her story was featured in the book and film 'Hidden Figures.'"
+                },
+                {
+                    question: "What was the name of the 1968 sanitation workers' strike where Dr. King gave his final speech?",
+                    answers: ["Chicago Strike", "Birmingham Strike", "Memphis Strike", "Atlanta Strike"],
+                    correct: 2,
+                    fact: "The Memphis Sanitation Strike of 1968 brought Dr. King to Memphis, where he delivered his 'I've Been to the Mountaintop' speech. He was assassinated the next day, April 4, 1968."
+                },
+                {
+                    question: "Who was the first African American Rhodes Scholar?",
+                    answers: ["Alain Locke", "W.E.B. Du Bois", "Ralph Bunche", "Charles Drew"],
+                    correct: 0,
+                    fact: "Alain Locke became the first African American Rhodes Scholar in 1907. He later became known as the 'Father of the Harlem Renaissance' and was a prominent philosopher and educator."
+                },
+                {
+                    question: "What year did the Voting Rights Act become law?",
+                    answers: ["1963", "1964", "1965", "1966"],
+                    correct: 2,
+                    fact: "The Voting Rights Act of 1965 was signed into law by President Lyndon B. Johnson. It prohibited racial discrimination in voting and was a major victory of the Civil Rights Movement."
+                },
+                {
+                    question: "Who wrote 'The Souls of Black Folk' in 1903?",
+                    answers: ["Booker T. Washington", "W.E.B. Du Bois", "Frederick Douglass", "James Baldwin"],
+                    correct: 1,
+                    fact: "W.E.B. Du Bois' 'The Souls of Black Folk' is a seminal work in African American literature and sociology. It introduced the concept of 'double consciousness' and critiqued Booker T. Washington's approach to racial progress."
+                },
+                {
+                    question: "What was the original name of Malcolm X?",
+                    answers: ["Malcolm Little", "Malcolm Johnson", "Malcolm Brown", "Malcolm Williams"],
+                    correct: 0,
+                    fact: "Malcolm X was born Malcolm Little in 1925. He later changed his surname to 'X' to represent his unknown African ancestral surname that was lost during slavery."
+                },
+                {
+                    question: "Who was the first African American woman to win three gold medals in a single Olympics?",
+                    answers: ["Jackie Joyner-Kersee", "Florence Griffith-Joyner", "Wilma Rudolph", "Simone Biles"],
+                    correct: 2,
+                    fact: "Wilma Rudolph won three gold medals in track and field at the 1960 Rome Olympics, becoming an international sports icon. She overcame childhood polio to become the fastest woman in the world."
+                },
+                {
+                    question: "What was the name of the legal defense strategy used in the Brown v. Board case?",
+                    answers: ["Separate but unequal", "Social science evidence", "Economic discrimination", "Cultural deprivation"],
+                    correct: 1,
+                    fact: "Thurgood Marshall and the NAACP legal team used social science research, including the famous 'doll tests' by Kenneth and Mamie Clark, to demonstrate the psychological harm of segregation on Black children."
+                }
+            ]
+        };
+
+        let currentDifficulty = '';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 30;
+        let timerInterval = null;
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        function startQuiz(difficulty) {
+            currentDifficulty = difficulty;
+            // Shuffle all questions and select only 5 random ones
+            currentQuestions = [...quizData[difficulty]].sort(() => Math.random() - 0.5).slice(0, 5);
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+
+            document.querySelector('.start-screen').classList.remove('active');
+            document.querySelector('.quiz-screen').classList.add('active');
+
+            updateDifficultyBadge();
+            loadQuestion();
+        }
+
+        function updateDifficultyBadge() {
+            const badge = document.getElementById('difficultyBadge');
+            badge.textContent = currentDifficulty.toUpperCase();
+            badge.className = 'difficulty-badge badge-' + currentDifficulty;
+        }
+
+        function loadQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = currentQuestions.length;
+            document.getElementById('question').textContent = question.question;
+            document.getElementById('factContainer').classList.remove('show');
+            document.getElementById('nextBtn').style.display = 'none';
+
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer;
+                button.onclick = () => selectAnswer(index);
+                answersContainer.appendChild(button);
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 30;
+            updateTimerDisplay();
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer').textContent = `Time: ${timeLeft}s`;
+        }
+
+        function handleTimeout() {
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === currentQuestions[currentQuestionIndex].correct) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            incorrectCount++;
+            showFact();
+        }
+
+        function selectAnswer(selectedIndex) {
+            clearInterval(timerInterval);
+            document.getElementById('timer').classList.remove('warning');
+
+            const question = currentQuestions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.answer-btn');
+            const isCorrect = selectedIndex === question.correct;
+
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === question.correct) {
+                    btn.classList.add('correct');
+                }
+                if (index === selectedIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            if (isCorrect) {
+                const points = currentDifficulty === 'easy' ? 10 : currentDifficulty === 'medium' ? 20 : 30;
+                const timeBonus = Math.floor(timeLeft / 5);
+                score += points + timeBonus;
+                correctCount++;
+                document.getElementById('score').textContent = score;
+            } else {
+                incorrectCount++;
+            }
+
+            showFact();
+        }
+
+        function showFact() {
+            const question = currentQuestions[currentQuestionIndex];
+            document.getElementById('factText').textContent = question.fact;
+            document.getElementById('factContainer').classList.add('show');
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < currentQuestions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+
+            document.querySelector('.quiz-screen').classList.remove('active');
+            document.querySelector('.results-screen').classList.add('active');
+
+            document.getElementById('finalScore').textContent = score + ' points';
+            document.getElementById('correctAnswers').textContent = correctCount;
+            document.getElementById('incorrectAnswers').textContent = incorrectCount;
+
+            const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
+            document.getElementById('accuracyPercent').textContent = accuracy + '%';
+
+            let message = '';
+            if (accuracy >= 90) {
+                message = 'Outstanding! You have excellent knowledge of Black history!';
+            } else if (accuracy >= 70) {
+                message = 'Great job! You know your Black history well!';
+            } else if (accuracy >= 50) {
+                message = 'Good effort! Keep learning about Black history!';
+            } else {
+                message = 'Thanks for playing! There\'s so much more to learn!';
+            }
+
+            document.getElementById('resultsMessage').textContent = message;
+        }
+
+        function restartQuiz() {
+            document.querySelector('.results-screen').classList.remove('active');
+            document.querySelector('.start-screen').classList.add('active');
+            document.getElementById('nameInputContainer').style.display = 'block';
+            document.getElementById('resultsLeaderboard').classList.remove('show');
+            document.getElementById('playerName').value = '';
+            loadLeaderboards();
+        }
+
+        // Leaderboard Functions
+        function getLeaderboard() {
+            const key = 'leaderboard_all';
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveLeaderboard(scores) {
+            const key = 'leaderboard_all';
+            localStorage.setItem(key, JSON.stringify(scores));
+        }
+
+        function saveScore() {
+            const playerName = document.getElementById('playerName').value.trim();
+
+            if (!playerName) {
+                alert('Please enter your name!');
+                return;
+            }
+
+            // Get current leaderboard
+            const leaderboard = getLeaderboard();
+
+            // Add new score with difficulty
+            leaderboard.push({
+                name: playerName,
+                score: score,
+                difficulty: currentDifficulty,
+                date: new Date().toISOString()
+            });
+
+            // Sort by score (descending) and keep top 20
+            leaderboard.sort((a, b) => b.score - a.score);
+            const topScores = leaderboard.slice(0, 20);
+
+            // Save to localStorage
+            saveLeaderboard(topScores);
+
+            // Hide the name input section
+            document.getElementById('nameInputContainer').style.display = 'none';
+
+            // Display the leaderboard with current player highlighted
+            displayResultsLeaderboard(playerName);
+
+            // Reload leaderboards on home screen
+            loadLeaderboards();
+        }
+
+        function displayResultsLeaderboard(playerName) {
+            const leaderboard = getLeaderboard();
+            const container = document.getElementById('resultsLeaderboardContent');
+            const titleElement = document.getElementById('resultsLeaderboardTitle');
+
+            titleElement.textContent = '🏆 Top Scores 🏆';
+
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div class="leaderboard-empty">No scores yet.</div>';
+            } else {
+                let html = '';
+                leaderboard.forEach((entry, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                    const isCurrentPlayer = entry.name === playerName && entry.score === score && entry.difficulty === currentDifficulty;
+                    const currentClass = isCurrentPlayer ? 'current-player' : '';
+
+                    html += `
+                        <div class="leaderboard-entry ${currentClass}">
+                            <span class="rank">${medal || (index + 1) + '.'}</span>
+                            <span class="name">${entry.name}${isCurrentPlayer ? ' (You!)' : ''}</span>
+                            <span class="difficulty-tag ${entry.difficulty}">${entry.difficulty.charAt(0).toUpperCase()}</span>
+                            <span class="score">${entry.score}</span>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            // Show the leaderboard
+            document.getElementById('resultsLeaderboard').classList.add('show');
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = getLeaderboard();
+            const container = document.getElementById('leaderboard-all');
+
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div class="leaderboard-empty">No scores yet. Be the first!</div>';
+                return;
+            }
+
+            let html = '';
+            leaderboard.slice(0, 10).forEach((entry, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                html += `
+                    <div class="leaderboard-entry">
+                        <span class="rank">${medal || (index + 1) + '.'}</span>
+                        <span class="name">${entry.name}</span>
+                        <span class="difficulty-tag ${entry.difficulty}">${entry.difficulty.charAt(0).toUpperCase()}</span>
+                        <span class="score">${entry.score}</span>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function loadLeaderboards() {
+            displayLeaderboard();
+        }
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            // Activate the clicked nav item
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+
+            // Scroll to top when switching tabs
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Study Mode - Category Navigation
+        function showCategory(categoryName) {
+            // Hide category selector
+            document.querySelector('.category-selector').style.display = 'none';
+
+            // Show selected category facts
+            document.getElementById(categoryName + '-facts').classList.add('active');
+
+            // Load facts for this category
+            loadCategoryFacts(categoryName);
+        }
+
+        function backToCategories() {
+            // Show category selector
+            document.querySelector('.category-selector').style.display = 'block';
+
+            // Hide all facts containers
+            document.querySelectorAll('.facts-container').forEach(container => {
+                container.classList.remove('active');
+            });
+        }
+
+        // Organize facts by category
+        const factsByCategory = {
+            'civil-rights': [
+                { title: "Rosa Parks and the Montgomery Bus Boycott", fact: "Rosa Parks' refusal to give up her seat on a Montgomery bus on December 1, 1955, sparked the Montgomery Bus Boycott, a pivotal event in the Civil Rights Movement that lasted 381 days." },
+                { title: "Brown v. Board of Education", fact: "Brown v. Board of Education (1954) unanimously ruled that racial segregation in public schools was unconstitutional, overturning the 'separate but equal' doctrine from Plessy v. Ferguson." },
+                { title: "The March on Washington", fact: "Dr. King delivered his iconic 'I Have a Dream' speech on August 28, 1963, during the March on Washington for Jobs and Freedom. Over 250,000 people attended this historic event at the Lincoln Memorial." },
+                { title: "The Voting Rights Act of 1965", fact: "The Voting Rights Act of 1965 was signed into law by President Lyndon B. Johnson. It prohibited racial discrimination in voting and was a major victory of the Civil Rights Movement." },
+                { title: "The NAACP's Founding", fact: "The National Association for the Advancement of Colored People (NAACP) was founded in 1909. It became the most influential civil rights organization in the United States, fighting for equality through legal challenges and advocacy." }
+            ],
+            'arts-culture': [
+                { title: "Maya Angelou's 'I Know Why the Caged Bird Sings'", fact: "Maya Angelou published this groundbreaking autobiography in 1969. The book explores her childhood and coming of age, addressing themes of racism, identity, and resilience." },
+                { title: "Toni Morrison's Nobel Prize", fact: "Toni Morrison won the Pulitzer Prize for 'Beloved' in 1988. She later became the first African American woman to win the Nobel Prize in Literature in 1993." },
+                { title: "Langston Hughes and the Harlem Renaissance", fact: "Langston Hughes wrote 'The Negro Speaks of Rivers' at age 17. He became one of the most important voices of the Harlem Renaissance, celebrating Black culture and life in his work." },
+                { title: "Hattie McDaniel's Historic Oscar Win", fact: "Hattie McDaniel won the Academy Award for Best Supporting Actress in 1940 for her role in 'Gone with the Wind.' Despite this achievement, she faced segregation at the ceremony and had to sit at a separate table." },
+                { title: "The Harlem Renaissance", fact: "Alain Locke became the first African American Rhodes Scholar in 1907. He later became known as the 'Father of the Harlem Renaissance' and was a prominent philosopher and educator." }
+            ],
+            'science': [
+                { title: "Katherine Johnson's NASA Calculations", fact: "Katherine Johnson calculated the trajectory for Alan Shepard's 1961 space flight and John Glenn's 1962 orbital mission. Her story was featured in the book and film 'Hidden Figures.'" },
+                { title: "Mae Jemison: First Black Woman in Space", fact: "Dr. Mae Jemison made history on September 12, 1992, aboard the Space Shuttle Endeavour. She is also a physician, engineer, and dancer who has dedicated her life to science education and diversity in STEM." },
+                { title: "Garrett Morgan's Traffic Light", fact: "Garrett Morgan invented the three-position traffic signal in 1923. He also invented an early version of the gas mask, which was used to save workers trapped in a tunnel explosion." },
+                { title: "George Washington Carver's Innovations", fact: "George Washington Carver developed over 300 uses for peanuts, helping Southern farmers diversify their crops and improve soil health through crop rotation." }
+            ],
+            'politics': [
+                { title: "Barack Obama: First Black President", fact: "Barack Obama was elected as the 44th President of the United States in 2008 and served two terms until 2017. His presidency was a historic milestone in American history." },
+                { title: "Shirley Chisholm's Presidential Run", fact: "Shirley Chisholm was elected to Congress in 1968, representing New York. In 1972, she became the first Black woman to run for President of the United States." },
+                { title: "Colin Powell: First Black Secretary of State", fact: "Colin Powell served as Secretary of State from 2001 to 2005 under President George W. Bush. He was also the first African American Chairman of the Joint Chiefs of Staff." },
+                { title: "Thurgood Marshall: Supreme Court Justice", fact: "Thurgood Marshall was appointed to the Supreme Court in 1967 by President Lyndon B. Johnson. Before his appointment, he was a legendary civil rights lawyer who won the landmark Brown v. Board of Education case." }
+            ],
+            'sports': [
+                { title: "Jackie Robinson Breaks the Color Barrier", fact: "Jackie Robinson broke baseball's color barrier in 1947 when he joined the Brooklyn Dodgers. His number 42 has been retired across all MLB teams in his honor." },
+                { title: "Muhammad Ali: The Greatest", fact: "Muhammad Ali was not only a three-time world heavyweight champion but also a prominent activist who stood up for civil rights and refused to be drafted into the Vietnam War on moral grounds." },
+                { title: "Wilma Rudolph's Olympic Triumph", fact: "Wilma Rudolph won three gold medals in track and field at the 1960 Rome Olympics, becoming an international sports icon. She overcame childhood polio to become the fastest woman in the world." },
+                { title: "Althea Gibson's Tennis Legacy", fact: "Althea Gibson became the first African American to win a Grand Slam title when she won the French Championships in 1956. She went on to win Wimbledon and the U.S. Open multiple times." }
+            ],
+            'business': [
+                { title: "Madam C.J. Walker: First Self-Made Millionaire", fact: "Madam C.J. Walker built her fortune through her line of hair care products for Black women in the early 1900s. She was also a philanthropist and activist." },
+                { title: "Maggie Lena Walker: Banking Pioneer", fact: "Maggie Lena Walker became the first African American woman to charter a bank in 1903, the St. Luke Penny Savings Bank in Richmond, Virginia. She was also a successful businesswoman and civil rights activist." },
+                { title: "Black Wall Street", fact: "The Tulsa Race Massacre of 1921 destroyed the prosperous Greenwood District, known as 'Black Wall Street.' Over 35 blocks were burned, up to 300 people were killed, and thousands were left homeless in one of the worst incidents of racial violence in American history." }
+            ]
+        };
+
+        function loadCategoryFacts(categoryName) {
+            const facts = factsByCategory[categoryName];
+            const container = document.getElementById(categoryName + '-facts-list');
+
+            let html = '';
+            facts.forEach((item, index) => {
+                html += `
+                    <div class="fact-card">
+                        <h4>${item.title}</h4>
+                        <p>${item.fact}</p>
+                        <button class="learn-more-btn" onclick="openAIChat('${item.title.replace(/'/g, "\\'")}', '${item.fact.replace(/'/g, "\\'")}')">
+                            Learn More 🤖
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // AI Chat Functionality
+        let currentConversation = [];
+
+        function openAIChat(title, fact) {
+            const modal = document.getElementById('ai-modal');
+            modal.classList.add('active');
+            document.getElementById('ai-chat-topic').textContent = title;
+
+            // Hide bottom nav on mobile when chat opens
+            if (window.innerWidth <= 768) {
+                document.querySelector('.bottom-nav').style.display = 'none';
+            }
+
+            // Reset conversation
+            currentConversation = [
+                { role: 'system', content: `You are a knowledgeable Black history educator. Keep responses concise (2-3 paragraphs max). The user is learning about: ${title}. Here's the initial fact: ${fact}.
+
+When responding:
+- Provide interesting context and details
+- Keep it conversational and engaging
+- End with exactly ONE follow-up question to encourage deeper exploration
+- Use proper paragraphs (separated by blank lines)
+
+Format your response with clear paragraph breaks for readability.` }
+            ];
+
+            // Initial AI message
+            const messagesContainer = document.getElementById('aiChatMessages');
+            messagesContainer.innerHTML = `
+                <div class="ai-message assistant">
+                    <strong>📚 Let's explore this topic!</strong>
+
+${fact}
+
+I can help you dive deeper into this topic. What would you like to know more about?
+                </div>
+            `;
+
+            currentConversation.push({
+                role: 'assistant',
+                content: `Let's explore this topic!\n\n${fact}\n\nI can help you dive deeper into this topic. What would you like to know more about?`
+            });
+        }
+
+        function closeAIChat() {
+            document.getElementById('ai-modal').classList.remove('active');
+            document.getElementById('aiInput').value = '';
+
+            // Show bottom nav again
+            document.querySelector('.bottom-nav').style.display = 'flex';
+        }
+
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            const messagesContainer = document.getElementById('aiChatMessages');
+            messagesContainer.innerHTML += `
+                <div class="ai-message user">
+                    <strong>You:</strong> ${message}
+                </div>
+            `;
+
+            // Clear input
+            input.value = '';
+
+            // Disable send button and show loading
+            document.getElementById('aiSendBtn').disabled = true;
+            document.getElementById('loadingIndicator').classList.add('active');
+
+            // Add to conversation
+            currentConversation.push({ role: 'user', content: message });
+
+            try {
+                // TODO: Replace with actual API call to your backend
+                // For now, show a placeholder response
+                const response = await callAIAPI(currentConversation);
+
+                // Add AI response to chat
+                messagesContainer.innerHTML += `
+                    <div class="ai-message assistant">
+                        <strong>🤖 AI Educator:</strong>
+
+${response}
+                    </div>
+                `;
+
+                currentConversation.push({ role: 'assistant', content: response });
+
+                // Scroll to bottom
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (error) {
+                messagesContainer.innerHTML += `
+                    <div class="ai-message assistant" style="background: #FFEBEE; border-left-color: #CE1126;">
+                        <strong>Error:</strong> Unable to get response. Please try again.
+                    </div>
+                `;
+            } finally {
+                document.getElementById('aiSendBtn').disabled = false;
+                document.getElementById('loadingIndicator').classList.remove('active');
+            }
+        }
+
+        // AI API call to backend
+        async function callAIAPI(conversation) {
+            const response = await fetch('http://localhost:3000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversation })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.message;
+        }
+
+        // Load leaderboards on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboards();
+        });
+    </script>
+</body>
+</html>
