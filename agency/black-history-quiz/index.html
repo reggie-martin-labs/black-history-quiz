@@ -2049,7 +2049,7 @@ Format your response with clear paragraph breaks for readability.` }
                     content: prompt
                 });
 
-                const response = await fetch('http://localhost:3000/api/chat', {
+                const response = await fetch('https://black-history-quiz.vercel.app/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ messages: currentConversation })
@@ -2129,7 +2129,7 @@ Format your response with clear paragraph breaks for readability.` }
 
         // AI API call to backend
         async function callAIAPI(conversation) {
-            const response = await fetch('http://localhost:3000/api/chat', {
+            const response = await fetch('https://black-history-quiz.vercel.app/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: conversation })
