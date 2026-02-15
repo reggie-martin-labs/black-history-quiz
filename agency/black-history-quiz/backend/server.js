@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
+const { OpenAIClient, AzureKeyCredential } = require('@azure/openai');
 const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
@@ -13,8 +14,19 @@ app.use(express.json());
 
 // Initialize AI clients based on available API keys
 let openaiClient = null;
+let azureOpenAIClient = null;
 let anthropicClient = null;
 
+// Azure OpenAI (Preferred for Microsoft hackathon!)
+if (process.env.AZURE_OPENAI_ENDPOINT && process.env.AZURE_OPENAI_KEY) {
+    azureOpenAIClient = new OpenAIClient(
+        process.env.AZURE_OPENAI_ENDPOINT,
+        new AzureKeyCredential(process.env.AZURE_OPENAI_KEY)
+    );
+    console.log('✅ Azure OpenAI client initialized (using Azure credits!)');
+}
+
+// Regular OpenAI (fallback)
 if (process.env.OPENAI_API_KEY) {
     openaiClient = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
@@ -22,6 +34,7 @@ if (process.env.OPENAI_API_KEY) {
     console.log('✅ OpenAI client initialized');
 }
 
+// Anthropic Claude
 if (process.env.ANTHROPIC_API_KEY) {
     anthropicClient = new Anthropic({
         apiKey: process.env.ANTHROPIC_API_KEY
@@ -34,13 +47,35 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         providers: {
+            azureOpenAI: !!azureOpenAIClient,
             openai: !!openaiClient,
             anthropic: !!anthropicClient
-        }
+        },
+        usingAzureCredits: !!azureOpenAIClient
     });
 });
 
-// Chat endpoint - OpenAI
+// Chat endpoint - Azure OpenAI (Preferred!)
+async function chatWithAzureOpenAI(messages) {
+    if (!azureOpenAIClient) {
+        throw new Error('Azure OpenAI not configured');
+    }
+
+    const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o-mini';
+
+    const result = await azureOpenAIClient.getChatCompletions(
+        deploymentName,
+        messages,
+        {
+            maxTokens: 500,
+            temperature: 0.7
+        }
+    );
+
+    return result.choices[0].message.content;
+}
+
+// Chat endpoint - Regular OpenAI (Fallback)
 async function chatWithOpenAI(messages) {
     if (!openaiClient) {
         throw new Error('OpenAI API key not configured');
@@ -87,9 +122,18 @@ app.post('/api/chat', async (req, res) => {
         }
 
         let response;
-        const selectedProvider = provider || process.env.AI_PROVIDER || 'openai';
+        const selectedProvider = provider || process.env.AI_PROVIDER || 'azure';
 
-        if (selectedProvider === 'anthropic') {
+        // Prefer Azure OpenAI (uses your Azure credits!)
+        if (selectedProvider === 'azure' || (selectedProvider === 'openai' && azureOpenAIClient)) {
+            if (azureOpenAIClient) {
+                response = await chatWithAzureOpenAI(messages);
+            } else if (openaiClient) {
+                response = await chatWithOpenAI(messages);
+            } else {
+                return res.status(400).json({ error: 'No OpenAI provider configured' });
+            }
+        } else if (selectedProvider === 'anthropic') {
             response = await chatWithAnthropic(messages);
         } else if (selectedProvider === 'openai') {
             response = await chatWithOpenAI(messages);
