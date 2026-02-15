@@ -1,0 +1,9 @@
+{
+  "name": "black-history-quiz",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@vercel/kv": "^1.0.1",
+    "@azure/openai": "^1.0.0-beta.12"
+  }
+}
