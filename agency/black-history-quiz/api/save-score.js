@@ -1,4 +1,10 @@
-const { kv } = require('@vercel/kv');
+const Redis = require('ioredis');
+
+// Initialize Redis client
+let redis = null;
+if (process.env.REDIS_URL) {
+    redis = new Redis(process.env.REDIS_URL);
+}
 
 module.exports = async function handler(req, res) {
     // Enable CORS
@@ -22,6 +28,10 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: 'Name and score are required' });
         }
 
+        if (!redis) {
+            return res.status(500).json({ error: 'Redis not configured' });
+        }
+
         // Create a unique entry with timestamp
         const timestamp = Date.now();
         const entry = {
@@ -34,10 +44,8 @@ module.exports = async function handler(req, res) {
         };
 
         // Add to sorted set (score is the sort key)
-        await kv.zadd('leaderboard', {
-            score: score,
-            member: JSON.stringify(entry)
-        });
+        // ioredis syntax: zadd(key, score, member)
+        await redis.zadd('leaderboard', score, JSON.stringify(entry));
 
         return res.status(200).json({ success: true, entry });
 

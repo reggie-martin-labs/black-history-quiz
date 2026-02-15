@@ -1,4 +1,10 @@
-const { kv } = require('@vercel/kv');
+const Redis = require('ioredis');
+
+// Initialize Redis client
+let redis = null;
+if (process.env.REDIS_URL) {
+    redis = new Redis(process.env.REDIS_URL);
+}
 
 module.exports = async function handler(req, res) {
     // Enable CORS
@@ -16,11 +22,13 @@ module.exports = async function handler(req, res) {
     }
 
     try {
+        if (!redis) {
+            return res.status(500).json({ error: 'Redis not configured' });
+        }
+
         // Get top 10 scores (highest first)
-        // ZRANGE with REV gets them in descending order
-        const topScores = await kv.zrange('leaderboard', 0, 9, {
-            rev: true
-        });
+        // ZREVRANGE gets them in descending order by score
+        const topScores = await redis.zrevrange('leaderboard', 0, 9);
 
         // Parse the JSON entries
         const leaderboard = topScores.map(entry => JSON.parse(entry));
