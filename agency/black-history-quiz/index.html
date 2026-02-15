@@ -1678,7 +1678,7 @@
             }
         }
 
-        function showResults() {
+        async function showResults() {
             clearInterval(timerInterval);
 
             document.querySelector('.quiz-screen').classList.remove('active');
@@ -1689,7 +1689,7 @@
             document.getElementById('correctAnswers').textContent = correctCount;
 
             // Arcade style: Show leaderboard immediately with player's score highlighted
-            displayResultsLeaderboardWithTempScore();
+            await displayResultsLeaderboardWithTempScore();
 
             // Show name input (don't focus on mobile - keyboard blocks view)
             document.getElementById('nameInputContainer').style.display = 'block';
@@ -1797,61 +1797,70 @@
             }
         }
 
-        function displayResultsLeaderboardWithTempScore() {
-            const leaderboard = getLeaderboard();
+        async function displayResultsLeaderboardWithTempScore() {
             const container = document.getElementById('resultsLeaderboardContent');
             const titleElement = document.getElementById('resultsLeaderboardTitle');
 
             titleElement.textContent = '🏆 Leaderboard 🏆';
 
-            // Create temp leaderboard with current score
-            const tempLeaderboard = [...leaderboard, {
-                name: '---',
-                score: score,
-                difficulty: currentDifficulty,
-                isTemp: true
-            }];
+            try {
+                // Fetch global leaderboard from API
+                const response = await fetch('https://black-history-quiz.vercel.app/api/leaderboard');
+                const data = await response.json();
+                const leaderboard = data.leaderboard || [];
 
-            // Sort by score
-            tempLeaderboard.sort((a, b) => b.score - a.score);
+                // Create temp leaderboard with current score
+                const tempLeaderboard = [...leaderboard, {
+                    name: '---',
+                    score: score,
+                    questionsCorrect: correctCount,
+                    totalQuestions: correctCount + incorrectCount,
+                    isTemp: true
+                }];
 
-            // Find player's position
-            const playerIndex = tempLeaderboard.findIndex(entry => entry.isTemp);
+                // Sort by score
+                tempLeaderboard.sort((a, b) => b.score - a.score);
 
-            // Show only 3 entries: contextual based on player position
-            let displayEntries = [];
-            if (playerIndex <= 1) {
-                // Player is in top 2, show top 3
-                displayEntries = tempLeaderboard.slice(0, 3);
-            } else if (playerIndex >= tempLeaderboard.length - 2) {
-                // Player is in bottom 2, show bottom 3
-                displayEntries = tempLeaderboard.slice(-3);
-            } else {
-                // Player is in middle, show: above, player, below
-                displayEntries = tempLeaderboard.slice(playerIndex - 1, playerIndex + 2);
+                // Find player's position
+                const playerIndex = tempLeaderboard.findIndex(entry => entry.isTemp);
+
+                // Show only 3 entries: contextual based on player position
+                let displayEntries = [];
+                if (playerIndex <= 1) {
+                    // Player is in top 2, show top 3
+                    displayEntries = tempLeaderboard.slice(0, 3);
+                } else if (playerIndex >= tempLeaderboard.length - 2) {
+                    // Player is in bottom 2, show bottom 3
+                    displayEntries = tempLeaderboard.slice(-3);
+                } else {
+                    // Player is in middle, show: above, player, below
+                    displayEntries = tempLeaderboard.slice(playerIndex - 1, playerIndex + 2);
+                }
+
+                let html = '';
+                displayEntries.forEach((entry) => {
+                    const actualIndex = tempLeaderboard.indexOf(entry);
+                    const medal = actualIndex === 0 ? '🥇' : actualIndex === 1 ? '🥈' : actualIndex === 2 ? '🥉' : '';
+                    const isCurrentPlayer = entry.isTemp;
+                    const currentClass = isCurrentPlayer ? 'current-player' : '';
+
+                    html += `
+                        <div class="leaderboard-entry ${currentClass}">
+                            <span class="rank">${medal || (actualIndex + 1) + '.'}</span>
+                            <span class="name">${entry.isTemp ? 'YOU' : entry.name}</span>
+                            <span class="score">${entry.score} pts</span>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+                // Show the leaderboard
+                document.getElementById('resultsLeaderboard').classList.add('show');
+            } catch (error) {
+                console.error('Failed to load leaderboard:', error);
+                container.innerHTML = '<div class="leaderboard-empty">Failed to load leaderboard</div>';
             }
-
-            let html = '';
-            displayEntries.forEach((entry) => {
-                const actualIndex = tempLeaderboard.indexOf(entry);
-                const medal = actualIndex === 0 ? '🥇' : actualIndex === 1 ? '🥈' : actualIndex === 2 ? '🥉' : '';
-                const isCurrentPlayer = entry.isTemp;
-                const currentClass = isCurrentPlayer ? 'current-player' : '';
-
-                html += `
-                    <div class="leaderboard-entry ${currentClass}">
-                        <span class="rank">${medal || (actualIndex + 1) + '.'}</span>
-                        <span class="name">${entry.isTemp ? 'YOU' : entry.name}</span>
-                        <span class="difficulty-tag ${entry.difficulty}">${entry.difficulty.charAt(0).toUpperCase()}</span>
-                        <span class="score">${entry.score}</span>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-
-            // Show the leaderboard
-            document.getElementById('resultsLeaderboard').classList.add('show');
         }
 
         function displayResultsLeaderboard(playerName) {
